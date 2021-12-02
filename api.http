@@ -1,0 +1,5 @@
+### GET Leaderboard
+GET http://localhost:3000/api/leaderboard/v2?address=0xa36fdbbae3c9d55a1d67ee5821d53b50b63a1ab9
+
+### GET 
+GET http://localhost:3000/api/leaderboard/v2?address=0xddd6a0ecc3c6f6c102e5ea3d8af7b801d1a77ac8

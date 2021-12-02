@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+    <!-- BEGIN: Head -->
+    <%- include('header') -%>
+    <!-- END: Head -->
+    <body class="main">
+        <!-- BEGIN: Content -->
+        <div class="content">
+            <!-- BEGIN: Project List -->
+            <div class="intro-y box flex flex-col mt-5 pb-5">
+                <div class="flex items-center px-5 sm:py-0 border-b border-gray-200 dark:border-dark-5">
+                    <h2 class="font-medium text-base mr-auto py-5">
+                        Project List
+                    </h2>
+                </div>
+                <div id="projectList">
+
+                </div>
+            </div>
+            <!-- END: Project List -->
+            <!-- BEGIN: Project Insert -->
+            <div class="intro-y box flex flex-col mt-5">
+                <div class="flex items-center px-5 sm:py-0 border-b border-gray-200 dark:border-dark-5">
+                    <h2 class="font-medium text-base mr-auto py-5">
+                        Create Project
+                    </h2>
+                </div>
+                <div class="intro-y box flex flex-col px-5 py-5">
+                    <label for="name" class="form-label text-sm font-medium text-left">Name</label> 
+                    <input type="text" class="form-control" id="name" value="" placeholder="ex: MC Token Launch Auction"> 
+                    <label for="tokenAddress" class="form-label text-sm font-medium text-left mt-3">Token Address</label> 
+                    <input type="text" class="form-control" id="tokenAddress" value="" placeholder="ex: 0x949d48eca67b17269629c7194f4b727d4ef9e5d6"> 
+                    <label for="lpTokenAddress" class="form-label text-sm font-medium text-left mt-3">LP Token Address</label> 
+                    <input type="text" class="form-control" id="lpTokenAddress" value="" placeholder="ex: 0x4eebc19e5f29dec3dea07f66b9e707afc8f28c06"> 
+                    <label for="endBlockIndex" class="form-label text-sm font-medium text-left mt-3">End Block Index</label> 
+                    <input type="number" class="form-control" id="endBlockIndex" value="" placeholder="ex: 13557009"> 
+                    <button class="btn btn-primary mt-5" onclick="createProject()">Submit</button>
+                </div>
+            </div>
+            <!-- END: Project Insert -->
+        </div>
+        <script>
+            function createProject() {
+                const name = document.getElementById('name').value;
+                const tokenAddress = document.getElementById('tokenAddress').value;
+                const lpTokenAddress = document.getElementById('lpTokenAddress').value;
+                const endBlockIndex = document.getElementById('endBlockIndex').value;
+                fetch('/api/project', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name: name,
+                        tokenAddress: tokenAddress,
+                        lpTokenAddress: lpTokenAddress,
+                        endBlockIndex: endBlockIndex
+                    }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    }
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    if (data.isSuccess === true) {
+                        loadProject();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+
+            function deleteProject(id) {
+                fetch('/api/project?id=' + id, {
+                    method: 'DELETE'
+                }).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    if (data.isSuccess === true) {
+                        loadProject();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+
+            function loadProject() {
+                const apiUrl = '/api/project?time=' + new Date().getTime();
+                fetch(apiUrl).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    document.getElementById('projectList').innerHTML = '';
+                    var rowHTML = '';
+                    for (let i = 0; i < data.project.length; i++) {
+                        const record = data.project[i];
+                        const rowColor = (i % 2 > 0) ? 'bg-gray-100' : '';
+                        var row = '<div class="p-3 ' + rowColor + '">' +
+                            '<div class="lg:flex lg:flex-row justify-around" style="justify-content: space-between;">' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">No.<span></span></div>' +
+                                    '<div class="mt-1">#' + (i + 1) + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Name<span></span></div>' +
+                                    '<div class="mt-1">' + record.name + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Token Address<span></span></div>' + 
+                                    '<div class="mt-1">' + record.tokenAddress + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">LP Address<span></span></div>' + 
+                                    '<div class="mt-1">' + record.lpTokenAddress + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">End Block Index<span></span></div>' + 
+                                    '<div class="mt-1">' + record.endBlockIndex + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="mt-2"><button class="btn btn-danger btn-sm" onclick="deleteProject(' + record.id + ')">Delete</button></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                        rowHTML += row;
+                    }
+                    document.getElementById('projectList').innerHTML = rowHTML;
+                });
+            }
+            loadProject();
+        </script>
+        <!-- END: JS Assets-->
+    </body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+    <!-- BEGIN: Head -->
+    <%- include('header') -%>
+    <!-- END: Head -->
+    <body class="main">
+        <!-- BEGIN: Content -->
+        <div class="content">
+            <!-- BEGIN: Search -->
+            <div class="intro-y box flex flex-col px-5 py-5 mt-5">
+                <label for="searchProject" class="form-label text-lg font-medium text-left">Select Project</label> 
+                <select id="searchProject" class="form-select">
+                    <option value="">Please Select Project</option>
+                    <%
+                    for (let p = 0; p < projects.length; p++) { 
+                        const project = projects[p];
+                        const selected = (currentProject !== null && project.id === currentProject.id) ? 'selected' : '';
+                    %>
+                    <option value="<%= project.tokenAddress %>" <%= selected %> ><%= project.name %></option>
+                    <%
+                    } 
+                    %>
+                </select>
+                <button class="btn btn-primary mt-3" id="searchButton">Submit</button>
+            </div>
+            <!-- END: Search -->
+            <!-- BEGIN: Leaderboard -->
+            <div class="intro-y box flex flex-col mt-5 pb-5">
+                <div class="flex items-center px-5 sm:py-0 border-b border-gray-200 dark:border-dark-5">
+                    <h2 class="font-medium text-base mr-auto py-5">
+                        <%= (currentProject !== null) ? currentProject.name : '' %> Leaderboard
+                    </h2>
+                    <div class="ml-auto hidden sm:flex" role="tablist"> 
+                        <a href="https://copperlaunch.com/auctions/<%= (currentProject !== null) ? currentProject.lpTokenAddress : '' %>" target="_blank" class="py-5 ml-6">Copper Launch</a>
+                    </div>
+                </div>
+                <div id="leaderboardWrap">
+                    <%
+                    for (let i = 0; i < leaderboard.length; i++) {
+                        const row = leaderboard[i];
+                        const rowColor = (i % 2 > 0) ? 'bg-gray-100' : '';
+                    %>
+                    <div class="p-3 <%= rowColor %>">
+                        <div class="flex flex-row justify-around" style="justify-content: space-around;">
+                            <div>
+                                <div class="font-medium">Rank<span></span></div> 
+                                <div class="mt-1">#<%= (i + 1) %></div>
+                            </div>
+                            <div>
+                                <div class="font-medium">Address<span></span></div> 
+                                <div class="mt-1"><%= row.address %></div>
+                            </div>
+                            <div>
+                                <div class="font-medium">Contributed<span></span></div> 
+                                <div class="mt-1"><%= row.contributed %></div>
+                            </div>
+                            <div>
+                                <div class="font-medium">USD Value<span></span></div> 
+                                <div class="mt-1">$40,000</div>
+                            </div>
+                        </div>
+                    </div>
+                    <% 
+                    } 
+                    %>
+                </div>
+            </div>
+            <!-- END: Leaderboard -->
+        </div>
+        <!-- END: Content -->
+        <!-- BEGIN: JS Assets-->
+        <script>
+            const searchButton = document.getElementById('searchButton');
+            searchButton.onclick = search;
+            let timeoutID = undefined; 
+            let apiUrl = undefined;
+
+            function search() {
+                const searchProject = document.getElementById('searchProject');
+                apiUrl = '/api/leaderboard/v2?address=' + searchProject.value;
+                if (timeoutID !== undefined) clearInterval(timeoutID);
+                timeoutID = setInterval(( () => fetchLeaderboard() ), 10000);
+                fetchLeaderboard();
+            }
+
+            function fetchLeaderboard() {
+                fetch(apiUrl + '&time=' + new Date().getTime()).then(function(response) {
+                    return response.json();
+                }).then(function(data) {
+                    document.getElementById('leaderboardWrap').innerHTML = '';
+                    // console.log(data.leaderboard);
+                    var rowHTML = '';
+                    for (let i = 0; i < data.leaderboard.length; i++) {
+                        const record = data.leaderboard[i];
+                        const rowColor = (i % 2 > 0) ? 'bg-gray-100' : '';
+                        var row = '<div class="p-3 ' + rowColor + '">' +
+                            '<div class="lg:flex lg:flex-row justify-around" style="justify-content: space-between;">' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Rank<span></span></div>' +
+                                    '<div class="mt-1">#' + (i + 1) + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Address<span></span></div>' +
+                                    '<div class="mt-1">' + record.address + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Contributed<span></span></div>' + 
+                                    '<div class="mt-1">' + record.amount + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">USD Value<span></span></div>' + 
+                                    '<div class="mt-1">$' + record.price + '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Percentage<span></span></div>' + 
+                                    '<div class="mt-1">' + record.percentage + '%</div>' +
+                                '</div>' +
+                                '<div>' +
+                                    '<div class="font-medium mt-1">Qualified<span></span></div>' + 
+                                    '<div class="mt-1">' + ((record.sell === 0) ? '✔️' : '❌') + '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+                        rowHTML += row;
+                    }
+                    document.getElementById('leaderboardWrap').innerHTML = rowHTML;
+                });
+            }
+        </script>
+        <!-- END: JS Assets-->
+    </body>
+</html>
